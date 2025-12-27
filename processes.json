@@ -1,0 +1,3 @@
+[
+  {"pid":"task 1","arrival_time":1,"burst_time":5,"priority":2,"queue":"USER"}
+]
