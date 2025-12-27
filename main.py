@@ -15,6 +15,20 @@ W, H = 1100, 650
 FPS = 60
 TICK_MS_DEFAULT = 500  # 0.5s per time unit
 
+# ------------------------------
+# COLORS
+# ------------------------------
+BG = (18, 18, 20)
+PANEL = (35, 35, 38)
+BORDER = (180, 180, 180)
+TEXT = (235, 235, 235)
+MUTED = (220, 220, 220)
+CPU_RUN = (70, 170, 110)
+CPU_IDLE = (120, 120, 120)
+READY_BOX = (70, 110, 170)
+GANTT_BG = (24, 24, 26)
+GRID = (70, 70, 75)
+
 
 # ------------------------------
 # Process definition
@@ -95,12 +109,100 @@ def build_default_processes() -> List[Process]:
 
 
 # ------------------------------
+# Helper drawing functions
+# ------------------------------
+def draw_panel(screen, rect, title, font, small):
+    pygame.draw.rect(screen, PANEL, rect, border_radius=14)
+    pygame.draw.rect(screen, BORDER, rect, 2, border_radius=14)
+    t = font.render(title, True, TEXT)
+    screen.blit(t, (rect.x + 12, rect.y + 10))
+
+def draw_process_chip(screen, rect, label, color, small):
+    pygame.draw.rect(screen, color, rect, border_radius=10)
+    pygame.draw.rect(screen, (20, 20, 20), rect, 2, border_radius=10)
+    txt = small.render(label, True, (10, 10, 10))
+    screen.blit(txt, (rect.x + 10, rect.y + 14))
+
+
+def pid_color(pid: str):
+    # Consistent color for each PID
+    if pid == "IDLE":
+        return CPU_IDLE
+    h = 0
+    for ch in pid:
+        h = (h * 31 + ord(ch)) & 0xFFFFFFFF
+    return (60 + (h % 160), 60 + ((h // 3) % 160), 60 + ((h // 7) % 160))
+
+def compress_gantt(gantt: List[str]):
+    # Convert tick-by-tick list into segments: (pid, start, end)
+    segs = []
+    if not gantt:
+        return segs
+    cur = gantt[0]
+    start = 0
+    for i in range(1, len(gantt)):
+        if gantt[i] != cur:
+            segs.append((cur, start, i))
+            cur = gantt[i]
+            start = i
+    segs.append((cur, start, len(gantt)))
+    return segs
+
+def draw_gantt(screen, rect, gantt: List[str], font, small):
+    # Panel
+    pygame.draw.rect(screen, PANEL, rect, border_radius=14)
+    pygame.draw.rect(screen, BORDER, rect, 2, border_radius=14)
+    title = font.render("Gantt Chart", True, TEXT)
+    screen.blit(title, (rect.x + 12, rect.y + 10))
+
+    inner = pygame.Rect(rect.x + 12, rect.y + 52, rect.w - 24, rect.h - 72)
+    pygame.draw.rect(screen, GANTT_BG, inner, border_radius=10)
+
+    if not gantt:
+        msg = small.render("(no ticks yet)", True, MUTED)
+        screen.blit(msg, (inner.x + 10, inner.y + 10))
+        return
+
+    segs = compress_gantt(gantt)
+    total_t = len(gantt)
+
+    # pixels per time unit (keep readable)
+    px_per_t = max(10, min(40, inner.w // max(1, total_t)))
+
+    x0 = inner.x + 10
+    y0 = inner.y + 18
+    h = 54
+
+    # Draw segments
+    for pid, s, e in segs:
+        bx = x0 + s * px_per_t
+        bw = max(1, (e - s) * px_per_t)
+        block = pygame.Rect(bx, y0, bw, h)
+        pygame.draw.rect(screen, pid_color(pid), block, border_radius=8)
+        pygame.draw.rect(screen, (20, 20, 20), block, 2, border_radius=8)
+
+        # Label if block wide enough
+        if bw >= 40:
+            label = small.render(pid, True, (10, 10, 10))
+            screen.blit(label, (bx + 6, y0 + 16))
+
+    # Time markers
+    max_markers = 16
+    step = max(1, total_t // max_markers)
+    for t in range(0, total_t + 1, step):
+        mx = x0 + t * px_per_t
+        pygame.draw.line(screen, GRID, (mx, y0 + h + 8), (mx, y0 + h + 22), 2)
+        tt = small.render(str(t), True, MUTED)
+        screen.blit(tt, (mx - 6, y0 + h + 26))
+
+
+# ------------------------------
 # Pygame UI (Phase 1: text only)
 # ------------------------------
 def main():
     pygame.init()
     screen = pygame.display.set_mode((W, H))
-    pygame.display.set_caption("CPU Scheduling Visualizer (FCFS) - Phase 1")
+    pygame.display.set_caption("CPU Scheduling Visualizer (FCFS) - Phase 3")
     clock = pygame.time.Clock()
 
     font = pygame.font.SysFont("Arial", 26)
@@ -138,52 +240,44 @@ def main():
             last_tick = now
 
         # Draw
-        screen.fill((18, 18, 20))
+        screen.fill(BG)
 
         header = [
-            "CPU Scheduling Visualizer (FCFS) - Phase 1",
+            "CPU Scheduling Visualizer (FCFS) - Phase 3",
             f"Time: {scheduler.time} | Completed: {len(scheduler.completed)}/{len(scheduler.processes)} | Tick: {tick_ms}ms",
             "Controls: SPACE Pause/Resume | R Reset | UP Slow | DOWN Fast",
         ]
         y = 18
         for ln in header:
-            surf = small.render(ln, True, (235, 235, 235))
+            surf = small.render(ln, True, TEXT)
             screen.blit(surf, (18, y))
             y += 26
 
-        # CPU info
-        cpu_title = font.render("CPU", True, (240, 240, 240))
-        screen.blit(cpu_title, (50, 120))
+        # Layout panels
+        cpu_panel = pygame.Rect(40, 120, 360, 180)
+        rq_panel = pygame.Rect(430, 120, 630, 180)
 
+        # CPU panel
+        draw_panel(screen, cpu_panel, "CPU", font, small)
         if scheduler.running:
-            cpu_lines = [
-                f"Running: {scheduler.running.pid}",
-                f"Remaining: {scheduler.running.remaining_time}/{scheduler.running.burst_time}",
-                f"Start time: {scheduler.running.start_time}",
-            ]
+            chip = pygame.Rect(cpu_panel.x + 20, cpu_panel.y + 70, 220, 56)
+            label = f"{scheduler.running.pid}  rem:{scheduler.running.remaining_time}"
+            draw_process_chip(screen, chip, label, CPU_RUN, small)
         else:
-            cpu_lines = ["CPU is IDLE"]
+            chip = pygame.Rect(cpu_panel.x + 20, cpu_panel.y + 70, 220, 56)
+            draw_process_chip(screen, chip, "IDLE", CPU_IDLE, small)
 
-        y = 165
-        for ln in cpu_lines:
-            screen.blit(small.render(ln, True, (220, 220, 220)), (50, y))
-            y += 26
+        # Ready Queue panel
+        draw_panel(screen, rq_panel, "Ready Queue (front → back)", font, small)
+        rx, ry = rq_panel.x + 20, rq_panel.y + 70
+        for i, p in enumerate(scheduler.ready_queue[:6]):
+            chip = pygame.Rect(rx + (i % 3) * 200, ry + (i // 3) * 70, 180, 56)
+            label = f"{p.pid}  rem:{p.remaining_time}"
+            draw_process_chip(screen, chip, label, READY_BOX, small)
 
-        # Ready Queue info
-        rq_title = font.render("Ready Queue (front → back)", True, (240, 240, 240))
-        screen.blit(rq_title, (450, 120))
-
-        rq = scheduler.ready_queue
-        rq_text = "  ".join([f"{p.pid}(rem:{p.remaining_time})" for p in rq]) or "(empty)"
-        screen.blit(small.render(rq_text, True, (220, 220, 220)), (450, 165))
-
-        # Gantt text preview (temporary)
-        gantt_title = font.render("Gantt (text preview)", True, (240, 240, 240))
-        screen.blit(gantt_title, (50, 260))
-
-        preview = scheduler.gantt_chart[-25:]  # show last 25 ticks
-        gantt_text = " | ".join(preview) if preview else "(no ticks yet)"
-        screen.blit(small.render(gantt_text, True, (220, 220, 220)), (50, 305))
+        # Gantt chart panel (visual)
+        gantt_panel = pygame.Rect(40, 330, 1020, 260)
+        draw_gantt(screen, gantt_panel, scheduler.gantt_chart, font, small)
 
         if paused:
             screen.blit(font.render("PAUSED", True, (255, 255, 255)), (950, 18))
