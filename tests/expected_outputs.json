@@ -1,0 +1,48 @@
+{
+  "tests": [
+    {
+      "name": "fcfs_simple",
+      "dataset": [
+        {"pid": "P1", "arrival_time": 0, "burst_time": 3, "priority": 0, "queue": "USER"},
+        {"pid": "P2", "arrival_time": 0, "burst_time": 2, "priority": 0, "queue": "USER"}
+      ],
+      "settings": {"algorithm": "FCFS", "quantum": 2, "preemptive_priority": true},
+      "expected": {
+        "per_pid": {
+          "P1": {"CT": 3, "TAT": 3, "WT": 0, "RT": 0},
+          "P2": {"CT": 5, "TAT": 5, "WT": 3, "RT": 3}
+        }
+      }
+    },
+    {
+      "name": "rr_quantum_2",
+      "dataset": [
+        {"pid": "P1", "arrival_time": 0, "burst_time": 4, "priority": 0, "queue": "USER"},
+        {"pid": "P2", "arrival_time": 0, "burst_time": 3, "priority": 0, "queue": "USER"}
+      ],
+      "settings": {"algorithm": "RR", "quantum": 2, "preemptive_priority": true},
+      "expected": {
+        "per_pid": {
+          "P1": {"CT": 6, "TAT": 6, "WT": 2, "RT": 0},
+          "P2": {"CT": 7, "TAT": 7, "WT": 4, "RT": 2}
+        }
+      }
+    },
+    {
+      "name": "priority_preemptive",
+      "dataset": [
+        {"pid": "P1", "arrival_time": 0, "burst_time": 5, "priority": 2, "queue": "USER"},
+        {"pid": "P2", "arrival_time": 1, "burst_time": 3, "priority": 1, "queue": "USER"},
+        {"pid": "P3", "arrival_time": 2, "burst_time": 2, "priority": 0, "queue": "USER"}
+      ],
+      "settings": {"algorithm": "PRIORITY", "quantum": 2, "preemptive_priority": true},
+      "expected": {
+        "per_pid": {
+          "P1": {"CT": 10, "TAT": 10, "WT": 5, "RT": 0},
+          "P2": {"CT": 6, "TAT": 5, "WT": 2, "RT": 0},
+          "P3": {"CT": 4, "TAT": 2, "WT": 0, "RT": 0}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+algorithm,avg_wt,avg_tat,avg_rt,cpu_util,makespan,throughput
+FCFS,0.0,5.0,0.0,100.0,5,0.2
+SJF,0.0,5.0,0.0,100.0,5,0.2
+PRIORITY,0.0,5.0,0.0,100.0,5,0.2
+RR,0.0,5.0,0.0,100.0,5,0.2
+MLQ,0.0,5.0,0.0,100.0,5,0.2

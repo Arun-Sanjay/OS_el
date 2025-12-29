@@ -1,0 +1,47 @@
+[
+  {
+    "algorithm": "FCFS",
+    "avg_wt": 0.0,
+    "avg_tat": 5.0,
+    "avg_rt": 0.0,
+    "cpu_util": 100.0,
+    "makespan": 5,
+    "throughput": 0.2
+  },
+  {
+    "algorithm": "SJF",
+    "avg_wt": 0.0,
+    "avg_tat": 5.0,
+    "avg_rt": 0.0,
+    "cpu_util": 100.0,
+    "makespan": 5,
+    "throughput": 0.2
+  },
+  {
+    "algorithm": "PRIORITY",
+    "avg_wt": 0.0,
+    "avg_tat": 5.0,
+    "avg_rt": 0.0,
+    "cpu_util": 100.0,
+    "makespan": 5,
+    "throughput": 0.2
+  },
+  {
+    "algorithm": "RR",
+    "avg_wt": 0.0,
+    "avg_tat": 5.0,
+    "avg_rt": 0.0,
+    "cpu_util": 100.0,
+    "makespan": 5,
+    "throughput": 0.2
+  },
+  {
+    "algorithm": "MLQ",
+    "avg_wt": 0.0,
+    "avg_tat": 5.0,
+    "avg_rt": 0.0,
+    "cpu_util": 100.0,
+    "makespan": 5,
+    "throughput": 0.2
+  }
+]

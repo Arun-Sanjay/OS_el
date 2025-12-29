@@ -1,3 +1,11 @@
 [
-  {"pid":"task 1","arrival_time":1,"burst_time":5,"priority":2,"queue":"USER"}
+  { "pid": "P1", "arrival_time": 0, "queue": "USER", "priority": 0, "bursts": [5, 2, 1] },
+  { "pid": "P2", "arrival_time": 1, "queue": "USER", "priority": 1, "bursts": [3] },
+
+  { "pid": "P3", "arrival_time": 2, "queue": "USER", "priority": 2, "bursts": [4, 3, 2] },
+  { "pid": "P4", "arrival_time": 3, "queue": "SYS",  "priority": 0, "bursts": [2, 2, 3] },
+  { "pid": "P5", "arrival_time": 4, "queue": "USER", "priority": 1, "bursts": [6] },
+  { "pid": "P6", "arrival_time": 5, "queue": "SYS",  "priority": 1, "bursts": [1, 4, 2] },
+  { "pid": "P7", "arrival_time": 6, "queue": "USER", "priority": 0, "bursts": [3, 1, 3, 2, 1] },
+  { "pid": "P8", "arrival_time": 7, "queue": "SYS",  "priority": 0, "bursts": [5, 1, 2] }
 ]
